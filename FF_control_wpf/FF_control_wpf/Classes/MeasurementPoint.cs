@@ -9,9 +9,9 @@ namespace FF_control_wpf.Classes
 {
     public class MeasurementPoint
     {
-        private double i_value;
-        private double time;
-        private int measurementNumber;
+        private double i_value;             //whats the Current (Strom) value
+        private double time;                //when was this recorded
+        private int measurementNumber;      //whats the measurement number (not really needed) 
 
         public int MeasurementNumber
         {

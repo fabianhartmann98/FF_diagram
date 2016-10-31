@@ -1,11 +1,14 @@
 ﻿<Window x:Class="FF_control_wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="390" Width="525">
     <Grid>
         <Canvas Name="can" MouseWheel="can_MouseWheel"
                 MouseRightButtonDown="can_MouseRightButtonDown"
-                MouseRightButtonUp="can_MouseRightButtonUp"/>
+                MouseRightButtonUp="can_MouseRightButtonUp"
+                Background="AliceBlue"
+                Height="300"
+                Width="300"/>
                 
     </Grid>
 </Window>

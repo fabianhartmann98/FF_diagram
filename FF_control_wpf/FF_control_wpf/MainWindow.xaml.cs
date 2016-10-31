@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FF_control_wpf.Classes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,12 +21,15 @@ namespace FF_control_wpf
     /// </summary>
     public partial class MainWindow : Window
     {
-
+        Plot p = new Plot(); 
         public MainWindow()
         {
             InitializeComponent();
 
-
+            p = Plot.createTestingPlot();
+            p.Can = can;
+            p.setAxisAuto();
+            can = p.draw(); 
         }
 
         private void can_MouseWheel(object sender, MouseWheelEventArgs e)
