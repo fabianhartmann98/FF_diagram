@@ -3,6 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        
+        <Canvas Name="can" MouseWheel="can_MouseWheel"
+                MouseRightButtonDown="can_MouseRightButtonDown"
+                MouseRightButtonUp="can_MouseRightButtonUp"/>
+                
     </Grid>
 </Window>

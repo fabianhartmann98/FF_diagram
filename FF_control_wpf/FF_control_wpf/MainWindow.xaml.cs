@@ -20,9 +20,27 @@ namespace FF_control_wpf
     /// </summary>
     public partial class MainWindow : Window
     {
+
         public MainWindow()
         {
             InitializeComponent();
+
+
+        }
+
+        private void can_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+
+        }
+
+        private void can_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+
+        private void can_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+
         }
     }
 }
