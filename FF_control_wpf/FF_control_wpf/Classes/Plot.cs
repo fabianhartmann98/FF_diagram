@@ -19,6 +19,8 @@ namespace FF_control_wpf.Classes
         private double offsetY;             //don't start at the bottom end (set in setAxisAuto) 
         private double plotheight;          //whats the canvas hight (default = 100)
         private double plotwidth;           //whats the canvas width (default = 100) 
+        private double arrowpercentage = 0.0125; //what percentage is the arrow wide  
+        private double arrowlengthmultiplier = 2; //how many times longer than wide 
         #endregion 
 
         #region full prop variables         
@@ -135,8 +137,10 @@ namespace FF_control_wpf.Classes
                 {
                     pl.Points.Add(scalingPoint(item.getPoint()));   //editing the points to fit to Canvas an plot 
                 }
-                can.Children.Clear();                       //clear Can before adding Polyline
-                can.Children.Add(pl); 
+                can.Children.Clear();                       //clear Can before adding Polyline  
+                AddAxis();
+                can.Children.Add(pl);
+                
             }
             return can;
         }
@@ -145,7 +149,7 @@ namespace FF_control_wpf.Classes
         /// sets offset and scale depending on the plotwidth and height and the points 
         /// doesn't need to be called if resized
         /// </summary>
-        public void setAxisAuto()
+        public void setScalingAuto()
         {
             xmin = points[0].Time;
             xmax = xmin;
@@ -213,6 +217,65 @@ namespace FF_control_wpf.Classes
             offsetY = ymin - (ymax - ymin) * 0.1;
             scaleX = plotwidth / (xmax + (xmax - xmin) * 0.2 - offsetX);
             scaleY = plotheight / (ymax + (ymax - ymin) * 0.2 - offsetY);
+        }
+
+        private void AddAxis()
+        {
+            #region xAxis
+            Line xAxis = new Line();
+            xAxis.Stroke = Brushes.Black;
+            xAxis.StrokeThickness = 1;
+            xAxis.X1 = 0;
+            xAxis.X2 = plotwidth;
+            if (xmin <= 0 && xmax > 0)
+            {                
+                xAxis.Y1 = scalingPoint(new Point(0, 0)).Y;
+                xAxis.Y2 = xAxis.Y1; 
+            }
+            else
+            {
+                xAxis.Y1 = scalingPoint(new Point(0, xmin)).Y;
+                xAxis.Y2 = xAxis.Y1;
+            }
+            can.Children.Add(xAxis);
+
+            Polygon pX = new Polygon();
+            pX.Fill = Brushes.Black;
+            pX.Stroke = Brushes.Black;
+            pX.StrokeThickness = 1;
+            pX.Points.Add(new Point(plotwidth, xAxis.Y1));
+            pX.Points.Add(new Point(plotwidth * (1 - arrowpercentage * arrowlengthmultiplier), xAxis.Y1 - plotwidth * arrowpercentage));
+            pX.Points.Add(new Point(plotwidth * (1 - arrowpercentage * arrowlengthmultiplier), xAxis.Y1 + plotwidth * arrowpercentage));
+            can.Children.Add(pX);
+            #endregion
+
+            #region yAxis
+            Line yAxis = new Line();
+            yAxis.Stroke = Brushes.Black;
+            yAxis.StrokeThickness = 1;
+            yAxis.Y1 = 0;
+            yAxis.Y2 = plotheight;
+            if (ymin <= 0 && ymax > 0)
+            {
+                yAxis.X1 = scalingPoint(new Point(0, 0)).X;
+                yAxis.X2 = yAxis.X1;
+            }
+            else
+            {
+                yAxis.X1 = scalingPoint(new Point(0, ymin)).X;
+                yAxis.X2 = yAxis.X1;
+            }
+            can.Children.Add(yAxis);
+
+            Polygon pY = new Polygon();
+            pY.Fill = Brushes.Black;
+            pY.Stroke = Brushes.Black;
+            pY.StrokeThickness = 1;
+            pY.Points.Add(new Point(yAxis.X1,0));
+            pY.Points.Add(new Point(plotwidth * arrowpercentage + yAxis.X1, plotheight * arrowpercentage * arrowlengthmultiplier));
+            pY.Points.Add(new Point(-plotwidth * arrowpercentage + yAxis.X1, plotheight * arrowpercentage * arrowlengthmultiplier));
+            can.Children.Add(pY);
+            #endregion
         }
         #endregion
 

@@ -28,7 +28,7 @@ namespace FF_control_wpf
 
             p = Plot.createTestingPlot();
             p.Can = can;
-            p.setAxisAuto();
+            p.setScalingAuto();
             can = p.draw(); 
         }
 

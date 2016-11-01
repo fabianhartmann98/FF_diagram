@@ -47,7 +47,7 @@ namespace FF_control_wpf.Classes
             time = p.X;
             measurementNumber = number; 
         }
-
+        
         public Point getPoint()
         {
             return new Point(time, i_value); 
