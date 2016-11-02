@@ -1,0 +1,13 @@
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\bin\Debug\FF_control_wpf.exe.config
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\bin\Debug\FF_control_wpf.exe
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\bin\Debug\FF_control_wpf.pdb
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\obj\Debug\FF_control_wpf.csprojResolveAssemblyReference.cache
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\obj\Debug\MainWindow.baml
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\obj\Debug\MainWindow.g.cs
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\obj\Debug\App.g.cs
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\obj\Debug\FF_control_wpf_MarkupCompile.cache
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\obj\Debug\FF_control_wpf.g.resources
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\obj\Debug\FF_control_wpf.Properties.Resources.resources
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\obj\Debug\FF_control_wpf.csproj.GenerateResource.Cache
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\obj\Debug\FF_control_wpf.exe
+C:\Users\Fabian\Documents\GitHub\FF_control\FF_control_wpf\FF_control_wpf\obj\Debug\FF_control_wpf.pdb
