@@ -29,7 +29,23 @@ namespace FF_control_wpf
             p = Plot.createTestingPlot();
             p.Can = can;
             p.setScalingAuto();
-            can = p.draw(); 
+            can = p.draw();
+            p.AddAxis();
+
+            Plot p2 = new Plot();
+            p2.Can = can;
+            p2.Points.Add(new MeasurementPoint(new Point(-5, 2)));
+            p2.Points.Add(new MeasurementPoint(new Point(-2, 4)));
+            p2.Points.Add(new MeasurementPoint(new Point(2, -2)));
+            p2.Points.Add(new MeasurementPoint(new Point(5, 4)));
+            p2.PlotColor = Brushes.Black;
+            p2.AxisXmax = p.AxisXmax;
+            p2.AxisXmin = p.AxisXmin;
+            p2.AxisYmax = p.AxisYmax;
+            p2.AxisYmin = p.AxisYmin;
+            p2.OffsetScaleCalculation(); 
+            can = p2.draw(); 
+
         }
 
         private void can_MouseWheel(object sender, MouseWheelEventArgs e)

@@ -9,6 +9,7 @@ namespace FF_control_wpf.Classes
 {
     public class MeasurementPoint
     {
+        #region full prop
         private double i_value;             //whats the Current (Strom) value
         private double time;                //when was this recorded
         private int measurementNumber;      //whats the measurement number (not really needed) 
@@ -28,7 +29,9 @@ namespace FF_control_wpf.Classes
             get { return i_value; }
             set { i_value = value; }
         }
+        #endregion
 
+        #region constructors
         public MeasurementPoint()
         {
             i_value = 0;
@@ -47,7 +50,9 @@ namespace FF_control_wpf.Classes
             time = p.X;
             measurementNumber = number; 
         }
-        
+        #endregion
+
+        #region public methods
         public Point getPoint()
         {
             return new Point(time, i_value); 
@@ -55,8 +60,8 @@ namespace FF_control_wpf.Classes
 
         public override string ToString()
         {
-            return String.Format("{0:u}: {1:c2}, {2:c2}",measurementNumber,time,i_value); 
+            return String.Format("{0:u}: {1:c2}, {2:c2}",measurementNumber,time,i_value);
         }
-        
+        #endregion
     }
 }

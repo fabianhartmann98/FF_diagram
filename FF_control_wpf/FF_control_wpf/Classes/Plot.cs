@@ -12,6 +12,19 @@ namespace FF_control_wpf.Classes
 {
     public class Plot
     {
+        /*
+         * Working flow: 
+         * 1. setup a new Plot (which generates a default hight and widht and also default colors for Plot and etc) 
+         * 2. give the Plot points (via addPoint or Points) 
+         * 3. set canvas to lot things on. 
+         * 4. if scaling depending on canvas and points -> 4.1; if scaling the same as a other plot or some specific min or max values ->4.2
+         *      4.1: call AutoScaling (scales depending on canvas and saved points) 
+         *      4.2.1: set specific AxisXmin and AxisYmin and so on 
+         *      4.2.2: call OffsetScaleCalculation (which calculates point for the values 
+         * 5. call draw (draws the plot and only the plot (without axis)) 
+         * 6. call AddAxis if needed (draws AxisLableCount labels; default = 5) 
+         */
+
         #region private variables, not accesable form outside
         private double scaleX;              //by wich scale do i have to multiplie to use canvas properly (set in setAxisAuto and set Can)
         private double offsetX;             //don't start at the left end (set in setAxisAuto) (not pixel value, instead its a value where the scale needs to be multiplied with) 
@@ -119,17 +132,27 @@ namespace FF_control_wpf.Classes
         }
         #endregion
 
+        #region prop vaiables 
+        public Brush PlotColor { get; set; }            //whats the color of the plot   
+        public Brush AxisColor { get; set; }            //whats the color of the Axis
+        public Brush AxisLabelColor { get; set; }       //whats the color of the Axis Labels and Markers
+        #endregion
+
         #region constructors
         /// <summary>
         /// creats default plot 
         /// hight = 100, width = 100 
+        /// Plotcolor = Blue; AxisColor = green; AxisLabelColor = Black
         /// gets allways called 
         /// </summary>
         public Plot()
         {
             points = new List<MeasurementPoint>();
             plotheight = 100;
-            plotwidth = 100; 
+            plotwidth = 100;
+            PlotColor = Brushes.Blue;
+            AxisColor = Brushes.Green;
+            AxisLabelColor = Brushes.Black; 
         }
         public Plot(List<Point> Points): this()         //calls Plot() first
         {
@@ -149,8 +172,10 @@ namespace FF_control_wpf.Classes
         #region public methods
         /// <summary>
         /// drawing the Points in a Polyline (thickness = 3, color = Black) 
-        /// clears can before adding Polyline    
-        /// Adds Axis to Canvas
+        /// need to clear can if needed 
+        /// need to set points and can before caling
+        /// need to call autoScaling 
+        /// need to call AddAxis for axis
         /// </summary>
         /// <returns>Canvas with Polyline and Axis as Child</returns>
         public Canvas draw()
@@ -160,13 +185,11 @@ namespace FF_control_wpf.Classes
             {
                 Polyline pl = new Polyline();       //defining new Polyline (Thickness = 3, Color = Black) 
                 pl.StrokeThickness = PlotStrokeThickness;
-                pl.Stroke = Brushes.Black;
+                pl.Stroke = PlotColor;
                 foreach (MeasurementPoint item in points)       //adding the Point in the list
                 {
                     pl.Points.Add(scalingPoint(item.getPoint()));   //editing the points to fit to Canvas an plot 
                 }
-                can.Children.Clear();                       //clear Can before adding Polyline  
-                AddAxis();
                 can.Children.Add(pl);
                 
             }
@@ -176,6 +199,7 @@ namespace FF_control_wpf.Classes
         /// <summary>
         /// sets offset and scale depending on the plotwidth and height and the points 
         /// doesn't need to be called if resized (need to set new Canvas) 
+        /// get's min and max values and calls OffsetScaleCalcualtion
         /// </summary>
         public void setScalingAuto()
         {
@@ -224,6 +248,155 @@ namespace FF_control_wpf.Classes
             }
             return p; 
         }
+
+        /// <summary>
+        /// adding the axis with the labels and label marker 
+        /// depending on min and max Values 
+        /// </summary>
+        public void AddAxis()
+        {
+            #region xAxis
+            //########Line################
+            Line xAxis = new Line();
+            xAxis.Stroke = AxisColor;
+            xAxis.StrokeThickness = AxisStrokeThickness;
+            xAxis.X1 = 0;                   //is starting left
+            xAxis.X2 = plotwidth;           //end at the right end
+            if (ymin <= 0 && ymax > 0)      //if Y=0 is displayed 
+            {
+                xAxis.Y1 = scalingPoint(new Point(0, 0)).Y; //set Y to 0 value (!= pixel value => needs scaling) 
+                xAxis.Y2 = xAxis.Y1;
+            }
+            else
+            {
+                xAxis.Y1 = scalingPoint(new Point(0, ymin)).Y; //else use ymin as value to go through Y Axis (also needs scaling) 
+                xAxis.Y2 = xAxis.Y1;
+            }
+            can.Children.Add(xAxis);
+
+            //#########Arrow################
+            Polygon pX = new Polygon();     //Arrow = Filled Polygon with 3 Points 
+            pX.Fill = AxisColor;
+            pX.Stroke = AxisColor;
+            pX.StrokeThickness = AxisStrokeThickness;       //not really needed
+            pX.Points.Add(new Point(plotwidth, xAxis.Y1));  //Spike point (at the end and on the level of xAxis) 
+            pX.Points.Add(new Point(plotwidth * (1 - arrowlengthpercentage), xAxis.Y1 - plotheight * arrowpercentage));
+            //x = Width*(1-Arrowlengthpercentage); y = Y level of x axis - height*arrowwithpercentage
+            pX.Points.Add(new Point(plotwidth * (1 - arrowlengthpercentage), xAxis.Y1 + plotheight * arrowpercentage));
+            can.Children.Add(pX);
+
+            //#########Labels##############
+            for (int i = 0; i < xAxisLabelCount; i++)   //for every Label
+            {
+                double x;
+                if (xmin <= 0 && xmax > 0)     //if x = 0 is displayed 
+                {
+                    // q    =   count - how many labels do i have to place in negative(xmin/(dif per Label))
+                    double q = (i + Math.Ceiling(xmin / (xmax - xmin) * (xAxisLabelCount - 1)));        //uses Ceiling to round up (-1,2->-1) 
+                    x = q * (xmax - xmin) / (xAxisLabelCount - 1);         //multiplies it with the dif per Label
+                }
+                else
+                {
+                    x = i * (xmax - xmin) / (xAxisLabelCount - 1) + xmin; //not displayed, so we start with xmin -> add up dif per Labe each time
+                }
+
+                Line l = new Line();        //setting up Label Marker Line
+                l.Stroke = AxisLabelColor;
+                l.StrokeThickness = AxisStrokeThickness;
+                Point p = new Point(x, 0);
+                p = scalingPoint(p);
+                l.X1 = p.X;         //x is on the level of the value (is scaled) 
+                l.X2 = p.X;
+                l.Y1 = xAxis.Y1 - LableMarkerLenght / 2;        //on level of XAxis +- the LabelMarkerLength/2 so the Label marker has a Length 
+                l.Y2 = xAxis.Y1 + LableMarkerLenght / 2;
+                can.Children.Add(l);                            //adding Label marker Line to the Canvas
+
+                TextBlock tb = new TextBlock();             //textblock with Value 
+                tb.Foreground = AxisLabelColor;
+                tb.Text = String.Format("{0:f2}", x);         //Floating 
+                Canvas.SetLeft(tb, l.X1 + LabelMarginLeftX);    //Sets it to the Marker Line plus a little Margin (=constants =  around -10) 
+                Canvas.SetTop(tb, l.Y2 + LabelMarginTopX);
+                can.Children.Add(tb);                       //adds Label Value to the canvas
+            }
+            #endregion
+
+            #region yAxis
+            //########Line################
+            Line yAxis = new Line();                //setting up yAxis ine 
+            yAxis.Stroke = AxisColor;
+            yAxis.StrokeThickness = AxisStrokeThickness;
+            yAxis.Y1 = 0;                           //starting at the Top
+            yAxis.Y2 = plotheight;                  //ending at the Bottom 
+            if (xmin <= 0 && xmax > 0)              //if x = 0 is displayed
+            {
+                yAxis.X1 = scalingPoint(new Point(0, 0)).X;     //use x = 0 as crossing point with XAxis 
+                yAxis.X2 = yAxis.X1;
+            }
+            else
+            {
+                yAxis.X1 = scalingPoint(new Point(0, xmin)).X;  //else use smin as crossing point with XAxis
+                yAxis.X2 = yAxis.X1;
+            }
+            can.Children.Add(yAxis);
+
+            //#########Arrow################
+            Polygon pY = new Polygon();     //Setting up Arrow = filled Polygon
+            pY.Fill = AxisColor;
+            pY.Stroke = AxisColor;
+            pY.StrokeThickness = AxisStrokeThickness;
+            pY.Points.Add(new Point(yAxis.X1, 0));   //is at the top and on the level of the yAxis 
+            pY.Points.Add(new Point(plotwidth * arrowpercentage + yAxis.X1, plotheight * arrowlengthpercentage));
+            //x = yAxis.X +- Arrowwidth; y = Arrowlength 
+            pY.Points.Add(new Point(-plotwidth * arrowpercentage + yAxis.X1, plotheight * arrowlengthpercentage));
+            can.Children.Add(pY);
+
+            //#########Labels##############
+            for (int i = 0; i < yAxisLabelCount; i++)
+            {
+                double y;
+
+                if (ymin <= 0 && ymax > 0)  //if y = 0 is displayed
+                {
+                    // q    =   count - how many labels do i have to set in negative (xmin/(dif per label)) 
+                    double q = (i + Math.Ceiling(ymin / (ymax - ymin) * (yAxisLabelCount - 1)));
+                    y = q * (ymax - ymin) / (yAxisLabelCount - 1);
+                }
+                else
+                {
+                    y = i * (ymax - ymin) / (yAxisLabelCount - 1) + ymin;    //start at ymin and add dif per label each time
+                }
+                Line l = new Line();            //setting up Label Marker Line
+                l.Stroke = AxisLabelColor;
+                l.StrokeThickness = AxisStrokeThickness;
+                Point p = new Point(0, y);
+                p = scalingPoint(p);
+                l.X1 = yAxis.X1 - LableMarkerLenght / 2;    //is on the yAxis.X +-the Marker length
+                l.X2 = yAxis.X1 + LableMarkerLenght / 2;
+                l.Y1 = p.Y;                                 //is on the value (is scaled) 
+                l.Y2 = p.Y;
+                can.Children.Add(l);                        //add Label Marker Line to the canvas 
+
+                TextBlock tb = new TextBlock();
+                tb.Foreground = AxisLabelColor;
+                tb.Text = String.Format("{0:f2}", y);
+                Canvas.SetLeft(tb, l.X1 + LabelMarginLeftY);    //set it to the label + Margin
+                Canvas.SetTop(tb, l.Y2 + LabelMarginTopY);
+                can.Children.Add(tb);                           //add Label Value to the canvas 
+            }
+            #endregion
+        }
+
+        /// <summary>
+        /// sets offset and Sclae for given min and max value 
+        /// </summary>
+        public void OffsetScaleCalculation()
+        {
+            //give them some margin 20% of the canvas is margin 
+            offsetX = xmin - (xmax - xmin) * PlottingMargin;     //xmin - Margin (Margin is not a pixel value) 
+            offsetY = ymin - (ymax - ymin) * PlottingMargin;
+            scaleX = plotwidth / (xmax + (xmax - xmin) * PlottingMargin * 2 - offsetX);     //*2 because of 2 Margins; Pixel/Range displayed(=xmax+margin-offset)  
+            scaleY = plotheight / (ymax + (ymax - ymin) * PlottingMargin * 2 - offsetY);
+        }   
         #endregion
         
         #region private methods 
@@ -240,148 +413,6 @@ namespace FF_control_wpf.Classes
             return q; 
         }
 
-        /// <summary>
-        /// sets offset and Sclae for given min and max value 
-        /// </summary>
-        private void OffsetScaleCalculation()
-        {
-            //give them some margin 20% of the canvas is margin 
-            offsetX = xmin - (xmax - xmin) * PlottingMargin;     //xmin - Margin (Margin is not a pixel value) 
-            offsetY = ymin - (ymax - ymin) * PlottingMargin;
-            scaleX = plotwidth / (xmax + (xmax - xmin) * PlottingMargin * 2 - offsetX);     //*2 because of 2 Margins; Pixel/Range displayed(=xmax+margin-offset)  
-            scaleY = plotheight / (ymax + (ymax - ymin) * PlottingMargin * 2 - offsetY);
-        }
-
-        private void AddAxis()
-        {
-            #region xAxis
-            //########Line################
-            Line xAxis = new Line();
-            xAxis.Stroke = Brushes.Black;
-            xAxis.StrokeThickness = AxisStrokeThickness;
-            xAxis.X1 = 0;                   //is starting left
-            xAxis.X2 = plotwidth;           //end at the right end
-            if (ymin <= 0 && ymax > 0)      //if Y=0 is displayed 
-            {                
-                xAxis.Y1 = scalingPoint(new Point(0, 0)).Y; //set Y to 0 value (!= pixel value => needs scaling) 
-                xAxis.Y2 = xAxis.Y1; 
-            }
-            else
-            {
-                xAxis.Y1 = scalingPoint(new Point(0, ymin)).Y; //else use ymin as value to go through Y Axis (also needs scaling) 
-                xAxis.Y2 = xAxis.Y1;
-            }
-            can.Children.Add(xAxis);
-
-            //#########Arrow################
-            Polygon pX = new Polygon();     //Arrow = Filled Polygon with 3 Points 
-            pX.Fill = Brushes.Black;
-            pX.Stroke = Brushes.Black;
-            pX.StrokeThickness = AxisStrokeThickness;       //not really needed
-            pX.Points.Add(new Point(plotwidth, xAxis.Y1));  //Spike point (at the end and on the level of xAxis) 
-            pX.Points.Add(new Point(plotwidth * (1 - arrowlengthpercentage), xAxis.Y1 - plotheight * arrowpercentage)); 
-            //x = Width*(1-Arrowlengthpercentage); y = Y level of x axis - height*arrowwithpercentage
-            pX.Points.Add(new Point(plotwidth * (1 - arrowlengthpercentage), xAxis.Y1 + plotheight * arrowpercentage));
-            can.Children.Add(pX);
-
-            //#########Labels##############
-            for (int i = 0; i < xAxisLabelCount; i++)   //for every Label
-            {
-                double x; 
-                if (xmin <= 0 && xmax > 0)     //if x = 0 is displayed 
-                {
-                    // q    =   count - how many labels do i have to place in negative(xmin/(dif per Label))
-                    double q = (i + Math.Ceiling(xmin / (xmax - xmin) * (xAxisLabelCount - 1)));        //uses Ceiling to round up (-1,2->-1) 
-                    x =  q* (xmax - xmin) / (xAxisLabelCount - 1) ;         //multiplies it with the dif per Label
-                }
-                else
-                {
-                    x = i * (xmax - xmin) / (xAxisLabelCount - 1) + xmin; //not displayed, so we start with xmin -> add up dif per Labe each time
-                }
-                
-                Line l = new Line();        //setting up Label Marker Line
-                l.Stroke = Brushes.Black;
-                l.StrokeThickness = AxisStrokeThickness;
-                Point p = new Point(x, 0);
-                p = scalingPoint(p);
-                l.X1 = p.X;         //x is on the level of the value (is scaled) 
-                l.X2 = p.X;
-                l.Y1 = xAxis.Y1 - LableMarkerLenght / 2;        //on level of XAxis +- the LabelMarkerLength/2 so the Label marker has a Length 
-                l.Y2 = xAxis.Y1 + LableMarkerLenght / 2;
-                can.Children.Add(l);                            //adding Label marker Line to the Canvas
-
-                TextBlock tb = new TextBlock();             //textblock with Value 
-                tb.Text= String.Format("{0:f2}",x);         //Floating 
-                Canvas.SetLeft(tb, l.X1 + LabelMarginLeftX);    //Sets it to the Marker Line plus a little Margin (=constants =  around -10) 
-                Canvas.SetTop(tb, l.Y2 + LabelMarginTopX);
-                can.Children.Add(tb);                       //adds Label Value to the canvas
-            }
-            #endregion
-
-            #region yAxis
-            //########Line################
-            Line yAxis = new Line();                //setting up yAxis ine 
-            yAxis.Stroke = Brushes.Black;
-            yAxis.StrokeThickness = AxisStrokeThickness;
-            yAxis.Y1 = 0;                           //starting at the Top
-            yAxis.Y2 = plotheight;                  //ending at the Bottom 
-            if (xmin <= 0 && xmax > 0)              //if x = 0 is displayed
-            {   
-                yAxis.X1 = scalingPoint(new Point(0, 0)).X;     //use x = 0 as crossing point with XAxis 
-                yAxis.X2 = yAxis.X1;
-            }
-            else
-            {
-                yAxis.X1 = scalingPoint(new Point(0, xmin)).X;  //else use smin as crossing point with XAxis
-                yAxis.X2 = yAxis.X1;
-            }
-            can.Children.Add(yAxis);
-
-            //#########Arrow################
-            Polygon pY = new Polygon();     //Setting up Arrow = filled Polygon
-            pY.Fill = Brushes.Black;
-            pY.Stroke = Brushes.Black;
-            pY.StrokeThickness = AxisStrokeThickness;
-            pY.Points.Add(new Point(yAxis.X1,0));   //is at the top and on the level of the yAxis 
-            pY.Points.Add(new Point(plotwidth * arrowpercentage + yAxis.X1, plotheight * arrowlengthpercentage));
-            //x = yAxis.X +- Arrowwidth; y = Arrowlength 
-            pY.Points.Add(new Point(-plotwidth * arrowpercentage + yAxis.X1, plotheight * arrowlengthpercentage));
-            can.Children.Add(pY);
-
-            //#########Labels##############
-            for (int i = 0; i < yAxisLabelCount; i++)
-            {
-                double y;
-             
-                if (ymin <= 0 && ymax > 0)  //if y = 0 is displayed
-                {
-                    // q    =   count - how many labels do i have to set in negative (xmin/(dif per label)) 
-                    double q = (i + Math.Ceiling(ymin / (ymax - ymin) * (yAxisLabelCount - 1)));
-                    y = q * (ymax - ymin) / (yAxisLabelCount - 1);
-                }
-                else
-                {
-                   y = i * (ymax - ymin) / (yAxisLabelCount - 1) + ymin;    //start at ymin and add dif per label each time
-                }
-                Line l = new Line();            //setting up Label Marker Line
-                l.Stroke = Brushes.Black;
-                l.StrokeThickness = AxisStrokeThickness;
-                Point p = new Point(0,y);
-                p = scalingPoint(p);
-                l.X1 = yAxis.X1 - LableMarkerLenght / 2;    //is on the yAxis.X +-the Marker length
-                l.X2 = yAxis.X1 + LableMarkerLenght/2;
-                l.Y1 = p.Y;                                 //is on the value (is scaled) 
-                l.Y2 = p.Y;
-                can.Children.Add(l);                        //add Label Marker Line to the canvas 
-
-                TextBlock tb = new TextBlock();
-                tb.Text = String.Format("{0:f2}", y);
-                Canvas.SetLeft(tb, l.X1 + LabelMarginLeftY);    //set it to the label + Margin
-                Canvas.SetTop(tb, l.Y2 + LabelMarginTopY);      
-                can.Children.Add(tb);                           //add Label Value to the canvas 
-            }
-            #endregion
-        }
         #endregion
 
     }
