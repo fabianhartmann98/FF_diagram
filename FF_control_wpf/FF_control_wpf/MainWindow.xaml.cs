@@ -21,7 +21,8 @@ namespace FF_control_wpf
     /// </summary>
     public partial class MainWindow : Window
     {
-        Plot p = new Plot(); 
+        Plot p = new Plot();
+        Plot p2; 
         public MainWindow()
         {
             InitializeComponent();
@@ -32,7 +33,7 @@ namespace FF_control_wpf
             can = p.draw();
             p.AddAxis();
 
-            Plot p2 = new Plot();
+            p2 = new Plot();
             p2.Can = can;
             p2.Points.Add(new MeasurementPoint(new Point(-5, 2)));
             p2.Points.Add(new MeasurementPoint(new Point(-2, 4)));
@@ -43,14 +44,22 @@ namespace FF_control_wpf
             p2.AxisXmin = p.AxisXmin;
             p2.AxisYmax = p.AxisYmax;
             p2.AxisYmin = p.AxisYmin;
-            p2.OffsetScaleCalculation(); 
             can = p2.draw(); 
 
         }
 
         private void can_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-
+            
+            p.Scrole(e.GetPosition(can),e.Delta);
+            can.Children.Clear();
+            p.AddAxis(); 
+            p.draw(); 
+            p2.AxisXmax = p.AxisXmax;
+            p2.AxisXmin = p.AxisXmin;
+            p2.AxisYmax = p.AxisYmax;
+            p2.AxisYmin = p.AxisYmin;
+            can = p2.draw(); 
         }
 
         private void can_MouseRightButtonDown(object sender, MouseButtonEventArgs e)

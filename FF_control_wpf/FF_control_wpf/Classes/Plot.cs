@@ -16,17 +16,16 @@ namespace FF_control_wpf.Classes
          * Working flow: 
          * 1. setup a new Plot (which generates a default hight and widht and also default colors for Plot and etc) 
          * 2. give the Plot points (via addPoint or Points) 
-         * 3. set canvas to lot things on. 
+         * 3. set canvas to plot things on. 
          * 4. if scaling depending on canvas and points -> 4.1; if scaling the same as a other plot or some specific min or max values ->4.2
          *      4.1: call AutoScaling (scales depending on canvas and saved points) 
          *      4.2.1: set specific AxisXmin and AxisYmin and so on 
-         *      4.2.2: call OffsetScaleCalculation (which calculates point for the values 
          * 5. call draw (draws the plot and only the plot (without axis)) 
          * 6. call AddAxis if needed (draws AxisLableCount labels; default = 5) 
          */
 
         #region private variables, not accesable form outside
-        private double scaleX;              //by wich scale do i have to multiplie to use canvas properly (set in setAxisAuto and set Can)
+        private double scaleX;              //by which scale do i have to multiplie to use canvas properly (set in setAxisAuto and set Can)
         private double offsetX;             //don't start at the left end (set in setAxisAuto) (not pixel value, instead its a value where the scale needs to be multiplied with) 
         private double scaleY;              //by wich scale do i have to multiplie to use canvas properly (set in setAxisAuto and set Can) 
         private double offsetY;             //don't start at the bottom end (set in setAxisAuto) 
@@ -136,6 +135,7 @@ namespace FF_control_wpf.Classes
         public Brush PlotColor { get; set; }            //whats the color of the plot   
         public Brush AxisColor { get; set; }            //whats the color of the Axis
         public Brush AxisLabelColor { get; set; }       //whats the color of the Axis Labels and Markers
+        public double DiffPerScrolePercent { get; set; }       //what does the window (min and max of Axis) change per each scroll
         #endregion
 
         #region constructors
@@ -143,6 +143,7 @@ namespace FF_control_wpf.Classes
         /// creats default plot 
         /// hight = 100, width = 100 
         /// Plotcolor = Blue; AxisColor = green; AxisLabelColor = Black
+        /// DiffPerScrolePercent = 1
         /// gets allways called 
         /// </summary>
         public Plot()
@@ -152,7 +153,8 @@ namespace FF_control_wpf.Classes
             plotwidth = 100;
             PlotColor = Brushes.Blue;
             AxisColor = Brushes.Green;
-            AxisLabelColor = Brushes.Black; 
+            AxisLabelColor = Brushes.Black;
+            DiffPerScrolePercent = 1;
         }
         public Plot(List<Point> Points): this()         //calls Plot() first
         {
@@ -334,7 +336,7 @@ namespace FF_control_wpf.Classes
             }
             else
             {
-                yAxis.X1 = scalingPoint(new Point(0, xmin)).X;  //else use smin as crossing point with XAxis
+                yAxis.X1 = scalingPoint(new Point(xmin, 0)).X;  //else use smin as crossing point with XAxis
                 yAxis.X2 = yAxis.X1;
             }
             can.Children.Add(yAxis);
@@ -391,12 +393,26 @@ namespace FF_control_wpf.Classes
         /// </summary>
         public void OffsetScaleCalculation()
         {
-            //give them some margin 20% of the canvas is margin 
+            //give them some margin 20% of the canvas is margin (10% top and bottom)
             offsetX = xmin - (xmax - xmin) * PlottingMargin;     //xmin - Margin (Margin is not a pixel value) 
             offsetY = ymin - (ymax - ymin) * PlottingMargin;
             scaleX = plotwidth / (xmax + (xmax - xmin) * PlottingMargin * 2 - offsetX);     //*2 because of 2 Margins; Pixel/Range displayed(=xmax+margin-offset)  
             scaleY = plotheight / (ymax + (ymax - ymin) * PlottingMargin * 2 - offsetY);
-        }   
+        }
+
+        public void Scrole(Point MousePoint, double delta)
+        {
+            delta /= 120;
+            double LeftToAll = MousePoint.X / plotwidth;
+            double TopToAll = MousePoint.Y / plotheight;
+
+            xmin += DiffPerScrolePercent/100 * (xmax - xmin) * LeftToAll *delta;
+            xmax -= DiffPerScrolePercent / 100 * (xmax - xmin) * (1 - LeftToAll) * delta;
+
+            ymin += DiffPerScrolePercent / 100 * (ymax - ymin) * (1 - TopToAll) * delta;
+            ymax -= DiffPerScrolePercent / 100 * (ymax - ymin) * TopToAll * delta;
+            OffsetScaleCalculation(); 
+        }
         #endregion
         
         #region private methods 
