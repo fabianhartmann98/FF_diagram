@@ -43,7 +43,7 @@ namespace FF_control_wpf.Classes
         private int LabelMarginLeftX = -10;        //Margin to the Label Marker XAxis
         private int LabelMarginTopY = -10;         //whats the Margin to the Label Marker YAxis
         private int LabelMarginLeftY = -25;        //Margin to the Label Marker YAxis
-        private double PlottingMargin = 0.1;       //used to  set a small marging (top, bottom, right and left)     
+        private double PlottingMargin = 0.2;       //used to  set a small marging (top, bottom, right and left)     
         #endregion
 
         #endregion
@@ -396,8 +396,8 @@ namespace FF_control_wpf.Classes
             //give them some margin 20% of the canvas is margin (10% top and bottom)
             offsetX = xmin - (xmax - xmin) * PlottingMargin;     //xmin - Margin (Margin is not a pixel value) 
             offsetY = ymin - (ymax - ymin) * PlottingMargin;
-            scaleX = plotwidth / (xmax + (xmax - xmin) * PlottingMargin * 2 - offsetX);     //*2 because of 2 Margins; Pixel/Range displayed(=xmax+margin-offset)  
-            scaleY = plotheight / (ymax + (ymax - ymin) * PlottingMargin * 2 - offsetY);
+            scaleX = plotwidth / (xmax + (xmax - xmin) * PlottingMargin - offsetX);     //*1 because of 2 Margins (on is already in offset); Pixel/Range displayed(=xmax+margin-offset)  
+            scaleY = plotheight / (ymax + (ymax - ymin) * PlottingMargin - offsetY);
         }
 
         public void Scrole(Point MousePoint, double delta)
