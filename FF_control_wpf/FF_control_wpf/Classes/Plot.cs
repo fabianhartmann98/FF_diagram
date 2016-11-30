@@ -154,7 +154,7 @@ namespace FF_control_wpf.Classes
             PlotColor = Brushes.Blue;
             AxisColor = Brushes.Green;
             AxisLabelColor = Brushes.Black;
-            DiffPerScrolePercent = 1;
+            DiffPerScrolePercent = 2;
         }
         public Plot(List<Point> Points): this()         //calls Plot() first
         {
@@ -400,18 +400,27 @@ namespace FF_control_wpf.Classes
             scaleY = plotheight / (ymax + (ymax - ymin) * PlottingMargin - offsetY);
         }
 
+        /// <summary>
+        /// scrolling with a sensetifity set in DiffPerScrolePersen [0,100]
+        /// needs to be called by every wheel event
+        /// calls offsetScaleCalculation
+        /// needs to draw once again if it should be displayed
+        /// </summary>
+        /// <param name="MousePoint">point proportional to canvas origin</param>
+        /// <param name="delta">how much was the wheel turned (/120)</param>
         public void Scrole(Point MousePoint, double delta)
         {
             delta /= 120;
-            double LeftToAll = MousePoint.X / plotwidth;
-            double TopToAll = MousePoint.Y / plotheight;
+            //used to zoom to the place where the mouse Pointer is
+            double LeftToAll = MousePoint.X / plotwidth; //how much canvas is on the left of the pointer/max (=plotwidht)
+            double TopToAll = MousePoint.Y / plotheight;     //how much canvas is on the top of the pointer/max (=plotwidht)
 
-            xmin += DiffPerScrolePercent/100 * (xmax - xmin) * LeftToAll *delta;
+            xmin += DiffPerScrolePercent/100 * (xmax - xmin) * LeftToAll *delta; //adapt xmin, add value acording to sensetifity, and proportion of mouse Pointer and delta
             xmax -= DiffPerScrolePercent / 100 * (xmax - xmin) * (1 - LeftToAll) * delta;
 
             ymin += DiffPerScrolePercent / 100 * (ymax - ymin) * (1 - TopToAll) * delta;
             ymax -= DiffPerScrolePercent / 100 * (ymax - ymin) * TopToAll * delta;
-            OffsetScaleCalculation(); 
+            OffsetScaleCalculation();  //scale new offset and scale
         }
         #endregion
         
