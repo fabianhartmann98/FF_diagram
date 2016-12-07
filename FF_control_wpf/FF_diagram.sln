@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FF_control_wpf", "FF_control_wpf\FF_control_wpf.csproj", "{2E55E2CF-498F-4991-B8BB-918120C49E37}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FF_diagram", "FF_control_wpf\FF_diagram.csproj", "{2E55E2CF-498F-4991-B8BB-918120C49E37}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
