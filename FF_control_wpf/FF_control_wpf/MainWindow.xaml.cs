@@ -21,45 +21,37 @@ namespace FF_control_wpf
     /// </summary>
     public partial class MainWindow : Window
     {
-        Plot p = new Plot();
-        Plot p2; 
+        Diagram  diagram = new Diagram();
         public MainWindow()
         {
             InitializeComponent();
 
-            p = Plot.createTestingPlot();
-            p.Can = can;
-            p.setScalingAuto();
-            can = p.draw();
-            p.AddAxis();
+            diagram = new Diagram();
+            diagram.addGraph(Diagram.createTestingPlot());
+            Graph g = new Graph();            
+            g.addPoint(new MeasurementPoint(new Point(-5, 2)));
+            g.addPoint(new MeasurementPoint(new Point(-2, 4)));
+            g.addPoint(new MeasurementPoint(new Point(2, -2)));
+            g.addPoint(new MeasurementPoint(new Point(5, 4)));
+            diagram.addGraph(g);
 
-            p2 = new Plot();
-            p2.Can = can;
-            p2.Points.Add(new MeasurementPoint(new Point(-5, 2)));
-            p2.Points.Add(new MeasurementPoint(new Point(-2, 4)));
-            p2.Points.Add(new MeasurementPoint(new Point(2, -2)));
-            p2.Points.Add(new MeasurementPoint(new Point(5, 4)));
-            p2.PlotColor = Brushes.Black;
-            p2.AxisXmax = p.AxisXmax;
-            p2.AxisXmin = p.AxisXmin;
-            p2.AxisYmax = p.AxisYmax;
-            p2.AxisYmin = p.AxisYmin;
-            can = p2.draw(); 
+            diagram.Grpahs[1].PlotColor = Brushes.Blue;
+            diagram.Grpahs[0].PlotColor = Brushes.Green;
 
+            diagram.Can = can;
+            diagram.setScalingAuto();
+            diagram.DrawAxis();
+            can = diagram.draw();
+            
         }
 
         private void can_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             
-            p.Scrole(e.GetPosition(can),e.Delta);
+            diagram.Scrole(e.GetPosition(can),e.Delta);
             can.Children.Clear();
-            p.AddAxis(); 
-            p.draw(); 
-            p2.AxisXmax = p.AxisXmax;
-            p2.AxisXmin = p.AxisXmin;
-            p2.AxisYmax = p.AxisYmax;
-            p2.AxisYmin = p.AxisYmin;
-            can = p2.draw(); 
+            diagram.DrawAxis();
+            can = diagram.draw(); 
         }
 
         private void can_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
