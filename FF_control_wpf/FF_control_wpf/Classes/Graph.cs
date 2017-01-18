@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,24 +9,34 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace FF_control_wpf.Classes
+namespace FF_control.Measure
 {
     public class Graph
     {
-        public List<MeasurementPoint> mps { get; set; }
 
-        #region Fullprop
+        #region Prop
+        public List<MeasurementPoint> mps { get; set; }
+        public string SaveLocation { get; set; }
+        public static string FileFilter ="H2B2 (*.b2h2)|*.b2h2|All Files (*.*)|*.*";
+
         private string name;            //name of the measurementrow
         private Brush plotColor;        //the color which is going to be displayed
         private double plotStrokeThickness; //how thick is the grpah going to be
         private DateTime measurementTime;   //when was the row measured (start Time) 
+        private double gap;                 //the gap in mm
+
+        public double MeasurementGap
+        {
+            get { return gap; }
+            set { gap = value; }
+        }
+        
 
         public DateTime MeasurementTime
         {
             get { return measurementTime; }
             set { measurementTime = value; }
         }
-
 
         public double PlotStrokeThickness
         {
@@ -130,6 +141,8 @@ namespace FF_control_wpf.Classes
             mps = new List<MeasurementPoint>();
             plotStrokeThickness = 3;
             PlotColor = Brushes.Black;
+            SaveLocation="";
+            name = "";
         }
 
         /// <summary>
@@ -137,7 +150,7 @@ namespace FF_control_wpf.Classes
         /// </summary>
         /// <param name="mp">the row of measurement points</param>
         /// <param name="name">the name of the graph</param>
-        public Graph(List<MeasurementPoint> mp, string name = "")
+        public Graph(List<MeasurementPoint> mp, string name = "") : this()
         {
             mps = mp;
             Name = name;
@@ -157,7 +170,7 @@ namespace FF_control_wpf.Classes
         /// <param name="offsetY"></param>
         /// <param name="ScaleX"></param>
         /// <param name="ScaleY"></param>
-        public void draw(Canvas can, double offsetX, double offsetY, double ScaleX, double ScaleY)
+        public void draw(Canvas can, double offsetX, double offsetY, double ScaleX, double ScaleY, double plotheight)
         {
 
             Polyline pl = new Polyline();       //defining new Polyline (Thickness = 3, Color = Black) 
@@ -165,9 +178,35 @@ namespace FF_control_wpf.Classes
             pl.Stroke = PlotColor;
             foreach (MeasurementPoint item in mps)       //adding the Point in the list
             {
-                pl.Points.Add(scalingPoint(item.getPoint(), offsetX,offsetY,ScaleX,ScaleY,can.Height));   //editing the points to fit to Canvas an plot 
+                pl.Points.Add(scalingPoint(item.getPoint(), offsetX,offsetY,ScaleX,ScaleY,plotheight));   //editing the points to fit to Canvas an plot 
             }
             can.Children.Add(pl);
+        }
+
+        public void Save()
+        {
+            SaveFileDialog sfd = new SaveFileDialog();
+            if (SaveLocation != null && "" != SaveLocation)
+                sfd.InitialDirectory =SaveLocation;
+            sfd.Filter = Graph.FileFilter;
+            if ((bool)sfd.ShowDialog())
+            {
+                SaveLocation = sfd.FileName;
+            }
+        }
+
+        public static Graph Open()
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.FileName = Graph.FileFilter;
+            if ((bool)ofd.ShowDialog())
+            {
+                Graph g = new Graph();
+                g.SaveLocation = ofd.FileName;
+
+                return g; 
+            }
+            return null;
         }
 
         private Point scalingPoint(Point p, double offsetX,double offsetY, double scaleX, double scaleY, double plotheight)

@@ -8,7 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace FF_control_wpf.Classes
+namespace FF_control.Measure
 {
     public class Diagram
     {
@@ -32,15 +32,17 @@ namespace FF_control_wpf.Classes
 
         #region constants                           
         //constants that are used to do Stuff but are here so it is easy to change
-        private double arrowpercentage = 0.0125; //what percentage is the arrow wide  
-        private double arrowlengthpercentage = 0.025; //how many times longer than wide 
+        private double arrowwidth =2.5; //what percentage is the arrow wide  
+        private double arrowlength = 10; //how many times longer than wide 
         private double LableMarkerLenght = 10; //how long ist the Marker for a lable at a Axis 
         private int AxisStrokeThickness = 1;    //default StrokeThickness for the Axis
         private int LabelMarginTopX = 5;         //whats the Margin to the Label Marker X Axis
         private int LabelMarginLeftX = -10;        //Margin to the Label Marker XAxis
         private int LabelMarginTopY = -10;         //whats the Margin to the Label Marker YAxis
         private int LabelMarginLeftY = -25;        //Margin to the Label Marker YAxis
-        private double PlottingMargin = 0.2;       //used to  set a small marging (top, bottom, right and left)     
+        private double PlottingMargin = 0.1;       //used to  set a small marging (top, bottom, right and left)    
+
+        private double DefaultPlotHeightWidth = 100; 
         #endregion
 
         #endregion
@@ -83,11 +85,22 @@ namespace FF_control_wpf.Classes
             get { return can; }
             set
             {
-                scaleY = value.Height / plotheight * scaleY;             //addapting scale 
-                scaleX = value.Width / plotwidth * scaleX;
+                var plotheight_old = plotheight;
+                var plotwidth_old = plotwidth;
                 can = value;
-                plotheight = can.Height;                                //setting height and Width
-                plotwidth = can.Width;
+                if (can != null)
+                {
+                    if(can.ActualHeight!=0)
+                        plotheight = can.ActualHeight;                                //setting height and Width
+                    if(can.ActualWidth!=0)
+                        plotwidth = can.ActualWidth;
+                }
+                else
+                {
+                    plotheight = DefaultPlotHeightWidth;
+                    plotwidth = DefaultPlotHeightWidth;
+                }
+                OffsetScaleCalculation();
             }
         }
 
@@ -148,8 +161,8 @@ namespace FF_control_wpf.Classes
         public Diagram()
         {
             Grpahs = new List<Graph>();
-            plotheight = 100;
-            plotwidth = 100;
+            plotheight = DefaultPlotHeightWidth;
+            plotwidth = DefaultPlotHeightWidth;
             AxisColor = Brushes.Green;
             AxisLabelColor = Brushes.Black;
             DiffPerScrolePercent = 2;
@@ -166,8 +179,18 @@ namespace FF_control_wpf.Classes
         public Diagram(Canvas ca) : this()                 //calls Plot() first
         {
             can = ca;
-            plotheight = can.Height;
-            plotwidth = can.Width;
+            if (can != null)
+            {
+                if (can.ActualHeight != 0)
+                    plotheight = can.ActualHeight;                                //setting height and Width
+                if (can.ActualWidth != 0)
+                    plotwidth = can.ActualWidth;
+            }
+            else
+            {
+                plotheight = DefaultPlotHeightWidth;
+                plotwidth = DefaultPlotHeightWidth;
+            }
         }
         #endregion
 
@@ -186,7 +209,7 @@ namespace FF_control_wpf.Classes
             {
                 foreach (var item in graphs)
                 {
-                    item.draw(can, offsetX, offsetY, scaleX, scaleY);
+                    item.draw(can, offsetX, offsetY, scaleX, scaleY,plotheight);
                 }
             }
             return can;
@@ -235,7 +258,7 @@ namespace FF_control_wpf.Classes
         #region addGraph
         public void addGraph()
         {
-            graphs.Add(new Graph());
+            graphs.Add(new Graph());            
         }
 
         public void addGraph(Graph g)
@@ -294,9 +317,9 @@ namespace FF_control_wpf.Classes
             pX.Stroke = AxisColor;
             pX.StrokeThickness = AxisStrokeThickness;       //not really needed
             pX.Points.Add(new Point(plotwidth, xAxis.Y1));  //Spike point (at the end and on the level of xAxis) 
-            pX.Points.Add(new Point(plotwidth * (1 - arrowlengthpercentage), xAxis.Y1 - plotheight * arrowpercentage));
+            pX.Points.Add(new Point(plotwidth - arrowlength, xAxis.Y1 - arrowwidth));
             //x = Width*(1-Arrowlengthpercentage); y = Y level of x axis - height*arrowwithpercentage
-            pX.Points.Add(new Point(plotwidth * (1 - arrowlengthpercentage), xAxis.Y1 + plotheight * arrowpercentage));
+            pX.Points.Add(new Point(plotwidth -arrowlength, xAxis.Y1 + arrowwidth));
             can.Children.Add(pX);
 
             //#########Labels##############
@@ -306,12 +329,12 @@ namespace FF_control_wpf.Classes
                 if (xmin <= 0 && xmax > 0)     //if x = 0 is displayed 
                 {
                     // q    =   count - how many labels do i have to place in negative(xmin/(dif per Label))
-                    double q = (i + Math.Ceiling(xmin / (xmax - xmin) * (xAxisLabelCount - 1)));        //uses Ceiling to round up (-1,2->-1) 
-                    x = q * (xmax - xmin) / (xAxisLabelCount - 1);         //multiplies it with the dif per Label
+                    double q = (i + Math.Ceiling(xmin / (xmax - xmin) * (xAxisLabelCount)));        //uses Ceiling to round up (-1,2->-1) 
+                    x = q * (xmax - xmin) / (xAxisLabelCount);         //multiplies it with the dif per Label
                 }
                 else
                 {
-                    x = i * (xmax - xmin) / (xAxisLabelCount - 1) + xmin; //not displayed, so we start with xmin -> add up dif per Labe each time
+                    x = i * (xmax - xmin) / (xAxisLabelCount) + xmin; //not displayed, so we start with xmin -> add up dif per Labe each time
                 }
 
                 Line l = new Line();        //setting up Label Marker Line
@@ -359,9 +382,9 @@ namespace FF_control_wpf.Classes
             pY.Stroke = AxisColor;
             pY.StrokeThickness = AxisStrokeThickness;
             pY.Points.Add(new Point(yAxis.X1, 0));   //is at the top and on the level of the yAxis 
-            pY.Points.Add(new Point(plotwidth * arrowpercentage + yAxis.X1, plotheight * arrowlengthpercentage));
+            pY.Points.Add(new Point(arrowwidth + yAxis.X1, arrowlength));
             //x = yAxis.X +- Arrowwidth; y = Arrowlength 
-            pY.Points.Add(new Point(-plotwidth * arrowpercentage + yAxis.X1, plotheight * arrowlengthpercentage));
+            pY.Points.Add(new Point(-arrowwidth + yAxis.X1, arrowlength));
             can.Children.Add(pY);
 
             //#########Labels##############
@@ -372,12 +395,12 @@ namespace FF_control_wpf.Classes
                 if (ymin <= 0 && ymax > 0)  //if y = 0 is displayed
                 {
                     // q    =   count - how many labels do i have to set in negative (xmin/(dif per label)) 
-                    double q = (i + Math.Ceiling(ymin / (ymax - ymin) * (yAxisLabelCount - 1)));
-                    y = q * (ymax - ymin) / (yAxisLabelCount - 1);
+                    double q = (i + Math.Ceiling(ymin / (ymax - ymin) * (yAxisLabelCount)));
+                    y = q * (ymax - ymin) / (yAxisLabelCount);
                 }
                 else
                 {
-                    y = i * (ymax - ymin) / (yAxisLabelCount - 1) + ymin;    //start at ymin and add dif per label each time
+                    y = i * (ymax - ymin) / (yAxisLabelCount) + ymin;    //start at ymin and add dif per label each time
                 }
                 Line l = new Line();            //setting up Label Marker Line
                 l.Stroke = AxisLabelColor;
@@ -432,6 +455,15 @@ namespace FF_control_wpf.Classes
 
             ymin += DiffPerScrolePercent / 100 * (ymax - ymin) * (1 - TopToAll) * delta;
             ymax -= DiffPerScrolePercent / 100 * (ymax - ymin) * TopToAll * delta;
+            OffsetScaleCalculation();  //scale new offset and scale
+        }
+
+        public void Shift(double dx, double dy)
+        {
+            xmin += dx / scaleX;
+            xmax += dx / scaleX;
+            ymax += dy / scaleY;
+            ymin += dy / scaleY;
             OffsetScaleCalculation();  //scale new offset and scale
         }
         #endregion
