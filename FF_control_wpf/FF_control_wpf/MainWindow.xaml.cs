@@ -1,4 +1,4 @@
-﻿using FF_control_wpf.Classes;
+﻿using FF_control;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,13 +50,13 @@ namespace FF_control_wpf
             
             diagram.Scrole(e.GetPosition(can),e.Delta);
             can.Children.Clear();
-            diagram.DrawAxis();
+            diagram.DrawAxis2dot0();
             can = diagram.draw(); 
         }
 
         private void can_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-
+            diagram.Can = can;
         }
 
         private void can_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
