@@ -40,7 +40,7 @@ namespace FF_control_wpf
 
             diagram.Can = can;
             diagram.setScalingAuto();
-            diagram.DrawAxis();
+            diagram.DrawAxis2dot0();
             can = diagram.draw();
             
         }

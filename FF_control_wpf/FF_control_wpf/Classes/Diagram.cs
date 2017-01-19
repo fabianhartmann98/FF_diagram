@@ -465,18 +465,34 @@ namespace FF_control
             can.Children.Add(pX);
 
             //#########Labels##############
+            double diffperlabel = (xmax - xmin) / xAxisLabelCount;
+            int q = 0;
+            while (diffperlabel < 10)
+            {
+                diffperlabel *= 10;
+                q++;
+            }
+            diffperlabel=Math.Round(diffperlabel);
+            diffperlabel /= Math.Pow(10, q);
+
+            double xminrounded = xmin;
+            xminrounded *= Math.Pow(10, q);
+            xminrounded = Math.Ceiling(xminrounded);
+            xminrounded /= Math.Pow(10, q);
+
             for (int i = 0; i < xAxisLabelCount; i++)   //for every Label
             {
-                double x;
+                double x;             
+
                 if (xmin <= 0 && xmax > 0)     //if x = 0 is displayed 
                 {
                     // q    =   count - how many labels do i have to place in negative(xmin/(dif per Label))
-                    double q = (i + Math.Ceiling(xmin / (xmax - xmin) * (xAxisLabelCount)));        //uses Ceiling to round up (-1,2->-1) 
-                    x = q * (xmax - xmin) / (xAxisLabelCount);         //multiplies it with the dif per Label
+                    double pos = (i + Math.Ceiling(xmin / diffperlabel));        //uses Ceiling to round up (-1,2->-1) 
+                    x = pos * diffperlabel;         //multiplies it with the dif per Label
                 }
                 else
-                {
-                    x = i * (xmax - xmin) / (xAxisLabelCount) + xmin; //not displayed, so we start with xmin -> add up dif per Labe each time
+                {                    
+                    x = i * diffperlabel + xminrounded; //not displayed, so we start with xmin -> add up dif per Labe each time
                 }
 
                 Line l = new Line();        //setting up Label Marker Line
@@ -524,6 +540,21 @@ namespace FF_control
             can.Children.Add(pY);
 
             //#########Labels##############
+            diffperlabel = (ymax - ymin) / yAxisLabelCount;
+            q = 0;
+            while (diffperlabel < 10)
+            {
+                diffperlabel *= 10;
+                q++;
+            }
+            diffperlabel = Math.Round(diffperlabel);
+            diffperlabel /= Math.Pow(10, q);
+
+            double yminrounded = ymin;
+            yminrounded *= Math.Pow(10, q);
+            yminrounded = Math.Ceiling(yminrounded);
+            yminrounded /= Math.Pow(10, q);
+
             for (int i = 0; i < yAxisLabelCount; i++)
             {
                 double y;
@@ -531,12 +562,12 @@ namespace FF_control
                 if (ymin <= 0 && ymax > 0)  //if y = 0 is displayed
                 {
                     // q    =   count - how many labels do i have to set in negative (xmin/(dif per label)) 
-                    double q = (i + Math.Ceiling(ymin / (ymax - ymin) * (yAxisLabelCount+1)));
-                    y = q * (ymax - ymin) / (yAxisLabelCount);
+                    double pos = (i + Math.Ceiling(ymin /diffperlabel));
+                    y = pos * diffperlabel;
                 }
                 else
                 {
-                    y = i * (ymax - ymin) / (yAxisLabelCount) + ymin;    //start at ymin and add dif per label each time
+                    y = i * diffperlabel + yminrounded;    //start at ymin and add dif per label each time
                 }
                 Line l = new Line();            //setting up Label Marker Line
                 l.Stroke = AxisLabelColor;
