@@ -443,7 +443,7 @@ namespace FF_control
         {
             #region xAxis
             //########Line################
-            Line xAxis = new Line();
+            Line xAxis = new Line();        //the straight line of the axis
             xAxis.Stroke = AxisColor;
             xAxis.StrokeThickness = AxisStrokeThickness;
             xAxis.X1 = 0;                   //is starting left
@@ -466,29 +466,30 @@ namespace FF_control
             can.Children.Add(pX);
 
             //#########Labels##############
-            double diffperlabel = (xmax - xmin) / xAxisLabelCount;
-            int q = 0;
-            while (diffperlabel < 1/LabelRounding)
+            double diffperlabel = (xmax - xmin) / xAxisLabelCount;  //get the diff per label (=range displaed / number)
+            int q = 0;                   
+            while (diffperlabel < 1/LabelRounding)  //get how much after the comma the first digit of diffperlabel is
             {                
-                diffperlabel *= 10;
+                diffperlabel *= 10;                 //multiply it by the
                 q++;
             }
-            diffperlabel=Math.Round(diffperlabel);
-            diffperlabel /= Math.Pow(10, q);
+            diffperlabel=Math.Round(diffperlabel);      //round it
+            diffperlabel /= Math.Pow(10, q);            //defide by the first multiplied potenz 
+            //now we have a rounded diffperlabel and how many commas did we need to get it (used to display only the necessary digits after comma)
 
-            double xminrounded = xmin;
+            double xminrounded = xmin;          //round the xmin up (so it's not on the left of the Y-Axis) (only needed if 0 is not in range)
             xminrounded *= Math.Pow(10, q);
             xminrounded = Math.Ceiling(xminrounded);
             xminrounded /= Math.Pow(10, q);
 
-            int power = 0;
+            int power = 0;                  //get the potenz we need to multiply by to get floatingpoint number
             while ((Math.Abs(xmin) + Math.Abs(xmax)) * Math.Pow(10, power) / 2 < 2)
                 power++;
             while ((Math.Abs(xmin) + Math.Abs(xmax)) * Math.Pow(10, power) / 2 > 20)
                 power--;
 
 
-                for (int i = 0; i < xAxisLabelCount; i++)   //for every Label
+            for (int i = 0; i < xAxisLabelCount; i++)   //for every Label
             {
                 double x;             
 
@@ -519,7 +520,7 @@ namespace FF_control
                 int floatcomma = q - power;
                 if (floatcomma < 0)
                     floatcomma = 0;
-                tb.Text = String.Format("{0:f" + Convert.ToString(floatcomma) + "}", x * Math.Pow(10, power));         //Floating                 Canvas.SetLeft(tb, l.X1 + LabelMarginLeftX);    //Sets it to the Marker Line plus a little Margin (=constants =  around -10) 
+                tb.Text = String.Format("{0:f" + Convert.ToString(floatcomma) + "}", x * Math.Pow(10, power));         //Floating                 
                 Canvas.SetLeft(tb, l.X1 + LabelMarginLeftX);    //set it to the label + Margin
                 Canvas.SetTop(tb, l.Y2 + LabelMarginTopX);
                 can.Children.Add(tb);                       //adds Label Value to the canvas
