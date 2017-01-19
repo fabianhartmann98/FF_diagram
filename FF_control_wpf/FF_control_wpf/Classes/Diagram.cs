@@ -41,7 +41,8 @@ namespace FF_control
         private int LabelMarginTopY = -10;         //whats the Margin to the Label Marker YAxis
         private int LabelMarginLeftY = -25;        //Margin to the Label Marker YAxis
         private double PlottingMargin = 0.0;       //used to  set a small marging (top, bottom, right and left)  
-        private double AxisMargin = 40;   
+        private double AxisMargin = 40;
+        private double LabelRounding = 0.1;
 
         private double DefaultPlotHeightWidth = 100; 
         #endregion
@@ -467,8 +468,8 @@ namespace FF_control
             //#########Labels##############
             double diffperlabel = (xmax - xmin) / xAxisLabelCount;
             int q = 0;
-            while (diffperlabel < 10)
-            {
+            while (diffperlabel < 1/LabelRounding)
+            {                
                 diffperlabel *= 10;
                 q++;
             }
@@ -480,7 +481,14 @@ namespace FF_control
             xminrounded = Math.Ceiling(xminrounded);
             xminrounded /= Math.Pow(10, q);
 
-            for (int i = 0; i < xAxisLabelCount; i++)   //for every Label
+            int power = 0;
+            while ((Math.Abs(xmin) + Math.Abs(xmax)) * Math.Pow(10, power) / 2 < 2)
+                power++;
+            while ((Math.Abs(xmin) + Math.Abs(xmax)) * Math.Pow(10, power) / 2 > 20)
+                power--;
+
+
+                for (int i = 0; i < xAxisLabelCount; i++)   //for every Label
             {
                 double x;             
 
@@ -508,11 +516,23 @@ namespace FF_control
 
                 TextBlock tb = new TextBlock();             //textblock with Value 
                 tb.Foreground = AxisLabelColor;
-                tb.Text = String.Format("{0:f2}", x);         //Floating 
-                Canvas.SetLeft(tb, l.X1 + LabelMarginLeftX);    //Sets it to the Marker Line plus a little Margin (=constants =  around -10) 
+                int floatcomma = q - power;
+                if (floatcomma < 0)
+                    floatcomma = 0;
+                tb.Text = String.Format("{0:f" + Convert.ToString(floatcomma) + "}", x * Math.Pow(10, power));         //Floating                 Canvas.SetLeft(tb, l.X1 + LabelMarginLeftX);    //Sets it to the Marker Line plus a little Margin (=constants =  around -10) 
+                Canvas.SetLeft(tb, l.X1 + LabelMarginLeftX);    //set it to the label + Margin
                 Canvas.SetTop(tb, l.Y2 + LabelMarginTopX);
                 can.Children.Add(tb);                       //adds Label Value to the canvas
             }
+
+            TextBlock tb_multiplier = new TextBlock();
+            tb_multiplier.Foreground = AxisLabelColor;
+            tb_multiplier.Text = "10^" + Convert.ToString(-power);
+            //Canvas.SetLeft(tb_multiplier, xAxis.X1 + 2 * LabelMarginLeftX);
+            //Canvas.SetTop(tb_multiplier, xAxis.Y1 + 2 * LabelMarginTopX);
+            Canvas.SetLeft(tb_multiplier, 0);
+            Canvas.SetTop(tb_multiplier, xAxis.Y1);
+            can.Children.Add(tb_multiplier);
             #endregion
 
             #region yAxis
@@ -542,7 +562,7 @@ namespace FF_control
             //#########Labels##############
             diffperlabel = (ymax - ymin) / yAxisLabelCount;
             q = 0;
-            while (diffperlabel < 10)
+            while (diffperlabel < 1/LabelRounding)
             {
                 diffperlabel *= 10;
                 q++;
@@ -554,6 +574,12 @@ namespace FF_control
             yminrounded *= Math.Pow(10, q);
             yminrounded = Math.Ceiling(yminrounded);
             yminrounded /= Math.Pow(10, q);
+
+            power = 0;
+            while ((Math.Abs(ymin) + Math.Abs(ymax)) * Math.Pow(10, power) / 2 < 2)
+                power++;
+            while ((Math.Abs(ymin) + Math.Abs(ymax)) * Math.Pow(10, power) / 2 > 20)
+                power--;
 
             for (int i = 0; i < yAxisLabelCount; i++)
             {
@@ -582,11 +608,20 @@ namespace FF_control
 
                 TextBlock tb = new TextBlock();
                 tb.Foreground = AxisLabelColor;
-                tb.Text = String.Format("{0:f2}", y);
+                int floatcomma = q - power;
+                if (floatcomma < 0)
+                    floatcomma = 0;
+                tb.Text = String.Format("{0:f" + Convert.ToString(floatcomma) + "}", y * Math.Pow(10, power));         //Floating 
                 Canvas.SetLeft(tb, l.X1 + LabelMarginLeftY);    //set it to the label + Margin
                 Canvas.SetTop(tb, l.Y2 + LabelMarginTopY);
                 can.Children.Add(tb);                           //add Label Value to the canvas 
             }
+            tb_multiplier = new TextBlock();
+            tb_multiplier.Foreground = AxisLabelColor;
+            tb_multiplier.Text = "10^" + Convert.ToString(-power);
+            Canvas.SetLeft(tb_multiplier,0);
+            Canvas.SetTop(tb_multiplier, 0);
+            can.Children.Add(tb_multiplier);
             #endregion
         }
 
